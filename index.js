@@ -9,17 +9,24 @@ const es6Renderer = require('express-es6-template-engine');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
-const homeController = require('./controllers/home');
-const userRouter = require('./routers/user');
+const {
+    homeController
+} = require('./controllers');
+
+const {
+    userRouter,
+    ideaRouter
+} = require('./routers');
+
 const { requireLogin } = require('./auth')
 
 const app = express();
 const server = http.createServer(app);
 
-const PORT = 3000;
+const PORT = 3300;
 const HOST = '0.0.0.0';
 
-const logger = morgan('tiny');
+const logger = morgan('dev');
 
 app.engine('html', es6Renderer);
 app.set('views', 'templates');
@@ -37,6 +44,7 @@ app.use(session({
 }));
 
 
+app.use(express.static('public'));
 
 app.use(logger);
 // Disabling for local development
@@ -49,20 +57,26 @@ app.get('/', homeController.home);
 
 app.use('/users', userRouter);
 
-app.get('/members-only', requireLogin, (req, res) => {
-    console.log(req.session.user);
-    const { username } = req.session.user;
-    res.send(`
+app.use( requireLogin )
 
-<h1>Hi ${username}!</h1>
-<a href="/users/logout">Log out</a>
-    `);
-});
+app.use('/dinner_idea', ideaRouter)
 
 app.get('/unauthorized', (req, res) => {
     res.send(`You shall not pass!`);
 });
 
+app.get('/members-only', (req, res) => {
+    console.log('------ in members only area -------')
+    console.log(req.session.user);
+    const { username } = req.session.user;
+    res.send(`
+
+<h1>Hi ${username}!</h1>
+<a href="/list">View Dinner List</a>
+<br>
+<a href="/users/logout">Log out</a>
+    `);
+});
 
 server.listen(PORT, HOST, () => {
     console.log(`Listening at http://${HOST}:${PORT}`);

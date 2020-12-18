@@ -1,0 +1,10 @@
+${header}
+<h1>Idea list</h1>
+<a href="/members-only">Back</a>
+<br>
+<a href="/dinner_idea/new">Add Idea</a>
+
+<ul>
+  ${ideas.map(i => `<li>${i.title}</li>`).join('')}
+  </ul>
+${footer}
